@@ -126,3 +126,7 @@ func Map[A, B any](arr []A, convert func(a A) B) []B {
 
 	return convertedArr
 }
+
+func ListOf[T any](values ...T) []T {
+	return values
+}

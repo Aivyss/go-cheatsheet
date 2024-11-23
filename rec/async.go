@@ -1,11 +1,20 @@
-package panic_recover
+package rec
 
 import (
+	"errors"
 	"fmt"
 	"runtime"
 )
 
-func AsyncWithRecover(runnable func() error, recoverFunc func(rec StackError)) {
+var NoFunctionalObjectErr = errors.New("no functional object")
+
+type AsyncRecoverFunc func(rec StackError)
+
+func AsyncWithRecover(runnable func() error, recoverFunc AsyncRecoverFunc) {
+	if runnable == nil {
+		panic(NoFunctionalObjectErr)
+	}
+
 	go func() {
 		var err error
 
@@ -18,6 +27,9 @@ func AsyncWithRecover(runnable func() error, recoverFunc func(rec StackError)) {
 					err = fmt.Errorf("%v", rec)
 				}
 
+				if recoverFunc == nil {
+					recoverFunc = DefaultAsyncRecoverFunc
+				}
 				recoverFunc(&stackErrorImpl{
 					error: err,
 					stack: buf[:runtime.Stack(buf, true)],

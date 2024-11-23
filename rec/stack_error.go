@@ -1,4 +1,4 @@
-package panic_recover
+package rec
 
 type WrappedError interface {
 	Unwrap() error

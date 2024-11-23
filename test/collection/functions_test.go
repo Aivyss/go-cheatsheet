@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/stretchr/testify/assert"
 	"go-cheatsheet/collection"
+	"math"
 	"testing"
 )
 
@@ -361,4 +362,42 @@ func TestMap(t *testing.T) {
 
 	// then
 	assert.Equal(t, expected, actuals)
+}
+
+func TestListOf(t *testing.T) {
+	t.Run("any", func(t *testing.T) {
+		// given
+		value1 := 1
+		value2 := "str"
+		value3 := true
+		value4 := math.Pi
+		value5 := float32(3.14)
+		value6 := int32(2)
+		value7 := int64(2)
+		expected := []any{value1, value2, value3, value4, value5, value6, value7}
+
+		// when
+		actual := collection.ListOf[any](value1, value2, value3, value4, value5, value6, value7)
+
+		// then
+		assert.Equal(t, expected, actual)
+	})
+	t.Run("typed", func(t *testing.T) {
+		type testStruct struct {
+			value string
+		}
+
+		v1 := testStruct{value: "a"}
+		v2 := testStruct{value: "b"}
+		v3 := testStruct{value: "c"}
+		v4 := testStruct{value: "d"}
+		v5 := testStruct{value: "e"}
+		expected := []testStruct{v1, v2, v3, v4, v5}
+
+		// when
+		actual := collection.ListOf(v1, v2, v3, v4, v5)
+
+		// then
+		assert.Equal(t, expected, actual)
+	})
 }

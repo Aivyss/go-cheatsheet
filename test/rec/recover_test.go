@@ -1,7 +1,8 @@
-package panic_recover
+package rec
 
 import (
 	"github.com/stretchr/testify/assert"
+	"go-cheatsheet/rec"
 	"sync"
 	"testing"
 )
@@ -13,7 +14,7 @@ func TestSyncWithRecover(t *testing.T) {
 	}
 
 	// when
-	err := SyncWithRecover(runnable, DefaultSyncRecoverFunc)
+	err := rec.SyncWithRecover(runnable, rec.DefaultSyncRecoverFunc)
 
 	// then
 	assert.Equal(t, "test_panic", err.Error())
@@ -28,7 +29,7 @@ func TestAsyncWithRecoverFunc(t *testing.T) {
 	// when
 	var wg sync.WaitGroup
 	wg.Add(1)
-	AsyncWithRecover(runnable, func(rec StackError) {
+	rec.AsyncWithRecover(runnable, func(rec rec.StackError) {
 		assert.Equal(t, "test_panic", rec.Error())
 		wg.Done()
 	})
