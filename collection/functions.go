@@ -2,13 +2,7 @@ package collection
 
 import (
 	"errors"
-	"math"
 )
-
-type pair[T any] struct {
-	idx int
-	t   T
-}
 
 var NoSliceElementErr = errors.New("no_slice_element_error")
 
@@ -55,44 +49,19 @@ func DistinctSimple[T comparable](arr []T) []T {
 }
 
 func Distinct[T any, C comparable](arr []T, getComparable func(t T) C) []T {
-	collection := map[C][]pair[T]{}
-	for i, t := range arr {
-		c := getComparable(t)
-		s := collection[c]
-		if s == nil {
-			s = []pair[T]{}
+	m := map[C]bool{}
+	filtered := make([]T, 0, len(arr))
+	for _, item := range arr {
+		c := getComparable(item)
+		if ok := m[c]; ok {
+			continue
 		}
 
-		s = append(s, pair[T]{
-			idx: i,
-			t:   t,
-		})
-		collection[c] = s
+		m[c] = true
+		filtered = append(filtered, item)
 	}
 
-	filteredArr := make([]T, 0, len(arr))
-	for {
-		if len(collection) < 1 {
-			break
-		}
-
-		var minC C
-		var minT T
-		var minI = math.MaxInt
-		for c, pairs := range collection {
-			p := pairs[0]
-			if p.idx <= minI {
-				minC = c
-				minT = p.t
-				minI = p.idx
-			}
-		}
-
-		delete(collection, minC)
-		filteredArr = append(filteredArr, minT)
-	}
-
-	return filteredArr
+	return filtered
 }
 
 func First[T any](arr []T, predicate func(t T) bool) (T, error) {
