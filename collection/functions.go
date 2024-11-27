@@ -75,6 +75,15 @@ func First[T any](arr []T, predicate func(t T) bool) (T, error) {
 	return tmp, NoSliceElementErr
 }
 
+func FirstOrNil[S ~[]T, T any](arr S, predicate func(t T) bool) *T {
+	first, err := First(arr, predicate)
+	if errors.Is(err, NoSliceElementErr) {
+		return nil
+	}
+
+	return &first
+}
+
 func Last[T any](arr []T, predicate func(t T) bool) (T, error) {
 	for i := len(arr) - 1; i >= 0; i-- {
 		if predicate(arr[i]) {
@@ -84,6 +93,15 @@ func Last[T any](arr []T, predicate func(t T) bool) (T, error) {
 
 	var tmp T
 	return tmp, NoSliceElementErr
+}
+
+func LastOrNil[S ~[]T, T any](arr S, predicate func(t T) bool) *T {
+	last, err := Last(arr, predicate)
+	if errors.Is(err, NoSliceElementErr) {
+		return nil
+	}
+
+	return &last
 }
 
 func Map[A, B any](arr []A, convert func(a A) B) []B {

@@ -401,3 +401,144 @@ func TestListOf(t *testing.T) {
 		assert.Equal(t, expected, actual)
 	})
 }
+
+func TestFirstOrNil(t *testing.T) {
+	t.Run("not nil", func(t *testing.T) {
+		// given
+		type testStruct struct {
+			flag   bool
+			number int
+		}
+		slice := []testStruct{
+			{
+				flag:   false,
+				number: 1,
+			},
+			{
+				flag:   true,
+				number: 2,
+			},
+			{
+				flag:   true,
+				number: 3,
+			},
+			{
+				flag:   false,
+				number: 4,
+			},
+		}
+
+		// when
+		v := collection.FirstOrNil(slice, func(t testStruct) bool {
+			return t.flag
+		})
+
+		// then
+		assert.NotNil(t, v)
+		assert.Equal(t, 2, v.number)
+	})
+	t.Run("nil result", func(t *testing.T) {
+		// given
+		type testStruct struct {
+			flag   bool
+			number int
+		}
+		slice := []testStruct{
+			{
+				flag:   false,
+				number: 1,
+			},
+			{
+				flag:   false,
+				number: 2,
+			},
+			{
+				flag:   false,
+				number: 3,
+			},
+			{
+				flag:   false,
+				number: 4,
+			},
+		}
+
+		// when
+		v := collection.FirstOrNil(slice, func(t testStruct) bool {
+			return t.flag
+		})
+
+		// then
+		assert.Nil(t, v)
+	})
+}
+
+func TestLastOrNil(t *testing.T) {
+	t.Run("not nil", func(t *testing.T) {
+		// given
+		type testStruct struct {
+			flag   bool
+			number int
+		}
+		slice := []testStruct{
+			{
+				flag:   false,
+				number: 1,
+			},
+			{
+				flag:   true,
+				number: 2,
+			},
+			{
+				flag:   true,
+				number: 3,
+			},
+			{
+				flag:   false,
+				number: 4,
+			},
+		}
+
+		// when
+		v := collection.LastOrNil(slice, func(t testStruct) bool {
+			return t.flag
+		})
+
+		// then
+		assert.NotNil(t, v)
+		assert.Equal(t, 3, v.number)
+	})
+
+	t.Run("nil result", func(t *testing.T) {
+		// given
+		type testStruct struct {
+			flag   bool
+			number int
+		}
+		slice := []testStruct{
+			{
+				flag:   false,
+				number: 1,
+			},
+			{
+				flag:   false,
+				number: 2,
+			},
+			{
+				flag:   false,
+				number: 3,
+			},
+			{
+				flag:   false,
+				number: 4,
+			},
+		}
+
+		// when
+		v := collection.LastOrNil(slice, func(t testStruct) bool {
+			return t.flag
+		})
+
+		// then
+		assert.Nil(t, v)
+	})
+}
