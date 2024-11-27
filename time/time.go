@@ -41,7 +41,7 @@ func (p *Period) LargerThanOrEqual(year, month, day int) bool {
 		day -= 1
 	}
 
-	shiftDate := p.From.GetDate().AddDate(0, 0, day)
+	shiftDate := p.From.GetDate().AddDate(year, month, day)
 	to := p.To.GetDate()
 	return shiftDate.Before(to) || shiftDate.Equal(to)
 }
@@ -59,6 +59,6 @@ func (p *Period) SmallerThanOrEqual(year, month, day int) bool {
 	}
 
 	to := p.To.GetDate()
-	shiftDate := p.From.GetDate().AddDate(0, 0, day)
+	shiftDate := p.From.GetDate().AddDate(year, month, day)
 	return shiftDate.After(to) || shiftDate.Equal(to)
 }
