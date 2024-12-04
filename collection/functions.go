@@ -35,33 +35,15 @@ func Count[T any](arr []T, predicate func(t T) bool) int {
 }
 
 func DistinctSimple[T comparable](arr []T) []T {
-	set := map[T]bool{}
-
-	return Filter(arr, func(t T) bool {
-		flag, ok := set[t]
-		if flag && ok {
-			return false
-		}
-
-		set[t] = true
-		return set[t]
+	return Distinct(arr, func(t T) T {
+		return t
 	})
 }
 
 func Distinct[T any, C comparable](arr []T, getComparable func(t T) C) []T {
-	m := map[C]bool{}
-	filtered := make([]T, 0, len(arr))
-	for _, item := range arr {
-		c := getComparable(item)
-		if ok := m[c]; ok {
-			continue
-		}
-
-		m[c] = true
-		filtered = append(filtered, item)
-	}
-
-	return filtered
+	return DistinctMap(arr, getComparable, func(t T) T {
+		return t
+	})
 }
 
 func First[T any](arr []T, predicate func(t T) bool) (T, error) {
@@ -116,4 +98,18 @@ func Map[A, B any](arr []A, convert func(a A) B) []B {
 
 func ListOf[T any](values ...T) []T {
 	return values
+}
+
+func DistinctMap[T, V any, S ~[]T, C comparable](arr S, getComparable func(t T) C, converter func(t T) V) []V {
+	isDuplicate := map[C]bool{}
+	results := make([]V, 0, len(arr))
+	for _, a := range arr {
+		c := getComparable(a)
+		if !isDuplicate[c] {
+			isDuplicate[c] = true
+			results = append(results, converter(a))
+		}
+	}
+
+	return results
 }

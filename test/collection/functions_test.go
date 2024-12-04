@@ -8,6 +8,40 @@ import (
 	"testing"
 )
 
+func TestDistinctMap(t *testing.T) {
+	// given
+	type testStruct struct {
+		v int
+	}
+	nums := []int{1, 2, 2, 4, 1, 6, 8, 5, 4, 3, 76, 78, 5, 3, 31}
+
+	// when
+	result := collection.DistinctMap(
+		nums,
+		func(num int) int {
+			return num
+		},
+		func(num int) testStruct {
+			return testStruct{v: num}
+		},
+	)
+
+	// then
+	expectedResult := []testStruct{
+		{v: 1},
+		{v: 2},
+		{v: 4},
+		{v: 6},
+		{v: 8},
+		{v: 5},
+		{v: 3},
+		{v: 76},
+		{v: 78},
+		{v: 31},
+	}
+	assert.Equal(t, expectedResult, result)
+}
+
 func TestDistinct(t *testing.T) {
 	type nonComparable struct {
 		num   int
