@@ -2,6 +2,7 @@ package collection
 
 import (
 	"errors"
+	"sort"
 )
 
 var NoSliceElementErr = errors.New("no_slice_element_error")
@@ -112,4 +113,32 @@ func DistinctMap[T, V any, S ~[]T, C comparable](arr S, getComparable func(t T) 
 	}
 
 	return results
+}
+
+func ComplexSort[T any](arr []T, compares ...func(i, j int) bool) {
+	funcs := Filter(compares, func(compare func(i, j int) bool) bool {
+		return compare != nil
+	})
+	if len(funcs) == 0 {
+		return
+	}
+
+	sort.Slice(arr, func(i, j int) bool {
+		return internalCompare(0, i, j, funcs...)
+	})
+}
+
+func internalCompare(seq, i, j int, compares ...func(i, j int) bool) bool {
+	if seq == len(compares)-1 {
+		return compares[seq](i, j)
+	}
+
+	isBiggerJ := compares[seq](i, j)
+	isBiggerI := compares[seq](j, i)
+
+	if !isBiggerI && !isBiggerJ {
+		return internalCompare(seq+1, i, j, compares...)
+	}
+
+	return isBiggerJ
 }

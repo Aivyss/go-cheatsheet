@@ -576,3 +576,259 @@ func TestLastOrNil(t *testing.T) {
 		assert.Nil(t, v)
 	})
 }
+
+func TestComplexSort(t *testing.T) {
+	t.Run("trivial", func(t *testing.T) {
+		// given
+		type testStruct struct {
+			order1 int
+			order2 string
+			order3 string
+		}
+
+		inputArr := []testStruct{
+			{
+				2,
+				"a",
+				"c",
+			},
+			{
+				1,
+				"a",
+				"a",
+			},
+			{
+				1,
+				"b",
+				"c",
+			},
+			{
+				1,
+				"b",
+				"a",
+			},
+			{
+				1,
+				"a",
+				"a",
+			},
+			{
+				2,
+				"a",
+				"b",
+			},
+			{
+				3,
+				"b",
+				"b",
+			},
+			{
+				2,
+				"a",
+				"a",
+			},
+		}
+
+		// when
+		collection.ComplexSort(
+			inputArr,
+			func(i, j int) bool {
+				return inputArr[i].order1 < inputArr[j].order1
+			},
+			func(i, j int) bool {
+				return inputArr[i].order2 < inputArr[j].order2
+			},
+			func(i, j int) bool {
+				return inputArr[i].order3 < inputArr[j].order3
+			},
+		)
+
+		// then
+		expectedResult := []testStruct{
+			{1, "a", "a"},
+			{1, "a", "a"},
+			{1, "b", "a"},
+			{1, "b", "c"},
+			{2, "a", "a"},
+			{2, "a", "b"},
+			{2, "a", "c"},
+			{3, "b", "b"},
+		}
+		assert.Equal(t, expectedResult, inputArr)
+	})
+	t.Run("no compare function", func(t *testing.T) {
+		// given
+		type testStruct struct {
+			order1 int
+			order2 string
+			order3 string
+		}
+
+		inputArr := []testStruct{
+			{
+				2,
+				"a",
+				"c",
+			},
+			{
+				1,
+				"a",
+				"a",
+			},
+			{
+				1,
+				"b",
+				"c",
+			},
+			{
+				1,
+				"b",
+				"a",
+			},
+			{
+				1,
+				"a",
+				"a",
+			},
+			{
+				2,
+				"a",
+				"b",
+			},
+			{
+				3,
+				"b",
+				"b",
+			},
+			{
+				2,
+				"a",
+				"a",
+			},
+		}
+
+		// when
+		collection.ComplexSort(inputArr)
+
+		// then
+		expectedResult := []testStruct{
+			{
+				2,
+				"a",
+				"c",
+			},
+			{
+				1,
+				"a",
+				"a",
+			},
+			{
+				1,
+				"b",
+				"c",
+			},
+			{
+				1,
+				"b",
+				"a",
+			},
+			{
+				1,
+				"a",
+				"a",
+			},
+			{
+				2,
+				"a",
+				"b",
+			},
+			{
+				3,
+				"b",
+				"b",
+			},
+			{
+				2,
+				"a",
+				"a",
+			},
+		}
+		assert.Equal(t, expectedResult, inputArr)
+	})
+	t.Run("with nil function", func(t *testing.T) {
+		// given
+		type testStruct struct {
+			order1 int
+			order2 string
+			order3 string
+		}
+
+		inputArr := []testStruct{
+			{
+				2,
+				"a",
+				"c",
+			},
+			{
+				1,
+				"a",
+				"a",
+			},
+			{
+				1,
+				"b",
+				"c",
+			},
+			{
+				1,
+				"b",
+				"a",
+			},
+			{
+				1,
+				"a",
+				"a",
+			},
+			{
+				2,
+				"a",
+				"b",
+			},
+			{
+				3,
+				"b",
+				"b",
+			},
+			{
+				2,
+				"a",
+				"a",
+			},
+		}
+
+		// when
+		collection.ComplexSort(
+			inputArr,
+			func(i, j int) bool {
+				return inputArr[i].order1 < inputArr[j].order1
+			},
+			nil,
+			func(i, j int) bool {
+				return inputArr[i].order3 < inputArr[j].order3
+			},
+		)
+
+		// then
+		expectedResult := []testStruct{
+			{1, "a", "a"},
+			{1, "b", "a"},
+			{1, "a", "a"},
+			{1, "b", "c"},
+			{2, "a", "a"},
+			{2, "a", "b"},
+			{2, "a", "c"},
+			{3, "b", "b"},
+		}
+		assert.Equal(t, expectedResult, inputArr)
+	})
+}
