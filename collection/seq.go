@@ -2,6 +2,7 @@ package collection
 
 import (
 	"iter"
+	"math"
 )
 
 func SeqOf[T any](values ...T) iter.Seq[T] {
@@ -14,10 +15,19 @@ func SeqOf[T any](values ...T) iter.Seq[T] {
 	}
 }
 
-func LoadSeq[T any](s iter.Seq[T]) []T {
+func LoadSeq[T any](s iter.Seq[T], n int) []T {
 	var result []T
+	count := 0
+	if n < 0 {
+		n = math.MaxInt
+	}
+
 	for a := range s {
 		result = append(result, a)
+		count += 1
+		if count == n {
+			break
+		}
 	}
 
 	return result
@@ -28,6 +38,28 @@ func MapSeq[A, B any](s iter.Seq[A], convert func(a A) B) iter.Seq[B] {
 		for a := range s {
 			if !yield(convert(a)) {
 				return
+			}
+		}
+	}
+}
+
+func FilterN[T any](s iter.Seq[T], predicate func(t T) bool, n int) iter.Seq[T] {
+	return func(yield func(a T) bool) {
+		count := 0
+		if n < 0 {
+			n = math.MaxInt
+		}
+
+		for a := range s {
+			if predicate(a) {
+				if !yield(a) {
+					return
+				}
+
+				count += 1
+				if count == n {
+					return
+				}
 			}
 		}
 	}
