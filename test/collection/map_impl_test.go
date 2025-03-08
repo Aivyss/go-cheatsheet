@@ -3,6 +3,7 @@ package collection
 import (
 	"github.com/stretchr/testify/assert"
 	"go-cheatsheet/collection"
+	"slices"
 	"sort"
 	"testing"
 )
@@ -17,21 +18,9 @@ func TestMultiValueMap(t *testing.T) {
 
 		// then
 		assert.Empty(t, values)
+		assert.True(t, m.IsEmpty())
 		assert.False(t, ok)
 		assert.Empty(t, 0, m.Len())
-	})
-
-	t.Run("no data2", func(t *testing.T) {
-		// given
-		m := collection.NewMultiValueMap[int, string]()
-
-		// when
-		m.Put(1)
-
-		// then
-		values, ok := m.Get(1)
-		assert.Empty(t, values)
-		assert.True(t, ok)
 	})
 
 	t.Run("Put", func(t *testing.T) {
@@ -39,7 +28,9 @@ func TestMultiValueMap(t *testing.T) {
 		m := collection.NewMultiValueMap[int, string]()
 
 		// when
-		m.Put(1, "a", "b", "c")
+		m.Put(1, "a")
+		m.Put(1, "b")
+		m.Put(1, "c")
 
 		// then
 		values, _ := m.Get(1)
@@ -55,8 +46,10 @@ func TestMultiValueMap(t *testing.T) {
 		}
 
 		// when
-		m.Put(1, inputValues...)
-		m.Put(2, inputValues...)
+		for _, value := range inputValues {
+			m.Put(1, value)
+			m.Put(2, value)
+		}
 
 		// then
 		m.Sort(1, orderBy)
@@ -75,8 +68,10 @@ func TestMultiValueMap(t *testing.T) {
 		}
 
 		// when
-		m.Put(1, inputValues...)
-		m.Put(2, inputValues...)
+		for _, value := range inputValues {
+			m.Put(1, value)
+			m.Put(2, value)
+		}
 
 		// then
 		m.SortAll(orderBy)
@@ -92,16 +87,15 @@ func TestMultiValueMap(t *testing.T) {
 		inputValues := []string{"b", "a", "c"}
 
 		// when
-		m.Put(1, inputValues...)
-		m.Put(2, inputValues...)
-		m.Put(3)
+		for _, value := range inputValues {
+			m.Put(1, value)
+			m.Put(2, value)
+		}
 
 		// then
-		keys := m.Keys()
-		sort.Slice(keys, func(i, j int) bool {
-			return keys[i] < keys[j]
-		})
-		assert.Equal(t, []int{1, 2, 3}, keys)
+		keys := collection.LoadSeq(m.Keys())
+		slices.Sort(keys)
+		assert.Equal(t, []int{1, 2}, keys)
 	})
 }
 
@@ -112,5 +106,68 @@ func TestMultiValueMapForCoverage(t *testing.T) {
 			return values[i] < values[j]
 		})
 	})
+}
 
+func TestSet(t *testing.T) {
+	t.Run("PutAll / Keys", func(t *testing.T) {
+		// given
+		expected := []int{1, 2, 3}
+		s := collection.NewSet[int]()
+
+		// when
+		s.PutAll(1, 2, 3)
+
+		// then
+		assert.Equal(t, 3, s.Len())
+		keys := collection.LoadSeq(s.Keys())
+		sort.Slice(keys, func(i, j int) bool {
+			return keys[i] < keys[j]
+		})
+		assert.Equal(t, expected, keys)
+	})
+	t.Run("Put / Keys", func(t *testing.T) {
+		// given
+		expected := []int{1, 2, 3}
+		s := collection.NewSet[int]()
+
+		// when
+		for _, v := range expected {
+			s.Put(v)
+		}
+
+		// then
+		assert.Equal(t, 3, s.Len())
+		keys := collection.LoadSeq(s.Keys())
+		sort.Slice(keys, func(i, j int) bool {
+			return keys[i] < keys[j]
+		})
+		assert.Equal(t, expected, keys)
+	})
+	t.Run("Contains", func(t *testing.T) {
+		// given
+		s := collection.NewSet[int]()
+		s.PutAll(1, 2, 3)
+
+		// when then 1
+		assert.True(t, s.Contains(1))
+		// when then 2
+		assert.True(t, s.Contains(2))
+		// when then 3
+		assert.True(t, s.Contains(3))
+		// when then 4
+		assert.False(t, s.Contains(4))
+	})
+	t.Run("Len / IsEmpty", func(t *testing.T) {
+		// given
+		s := collection.NewSet[int]()
+
+		// when then 1
+		assert.True(t, s.IsEmpty())
+		assert.Equal(t, 0, s.Len())
+		// when
+		s.PutAll(1, 2, 3)
+		// when then 2
+		assert.False(t, s.IsEmpty())
+		assert.Equal(t, 3, s.Len())
+	})
 }

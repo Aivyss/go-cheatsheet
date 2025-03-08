@@ -15,7 +15,7 @@ func SeqOf[T any](values ...T) iter.Seq[T] {
 	}
 }
 
-func LoadSeq[T any](s iter.Seq[T], n int) []T {
+func LoadSeqN[T any](s iter.Seq[T], n int) []T {
 	var result []T
 	count := 0
 	if n < 0 {
@@ -31,6 +31,10 @@ func LoadSeq[T any](s iter.Seq[T], n int) []T {
 	}
 
 	return result
+}
+
+func LoadSeq[T any](s iter.Seq[T]) []T {
+	return LoadSeqN(s, -1)
 }
 
 func MapSeq[A, B any](s iter.Seq[A], convert func(a A) B) iter.Seq[B] {

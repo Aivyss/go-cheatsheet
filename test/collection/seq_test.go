@@ -129,7 +129,7 @@ func TestLoadSeq(t *testing.T) {
 		seq := collection.SeqOf[int]()
 
 		// when
-		result := collection.LoadSeq(seq, -1)
+		result := collection.LoadSeqN(seq, -1)
 
 		// then
 		assert.Empty(t, result)
@@ -139,7 +139,7 @@ func TestLoadSeq(t *testing.T) {
 		seq := collection.SeqOf(1, 2, 3)
 
 		// when
-		result := collection.LoadSeq(seq, -1)
+		result := collection.LoadSeqN(seq, -1)
 
 		// then
 		assert.Equal(t, []int{1, 2, 3}, result)
@@ -149,7 +149,7 @@ func TestLoadSeq(t *testing.T) {
 		seq := collection.SeqOf(1, 2, 3)
 
 		// when
-		result := collection.LoadSeq(seq, 2)
+		result := collection.LoadSeqN(seq, 2)
 
 		// then
 		assert.Equal(t, []int{1, 2}, result)
@@ -235,6 +235,6 @@ func TestFilterN(t *testing.T) {
 
 		// then
 		assert.Equal(t, 2, collection.CountSeq(actuals))
-		assert.Equal(t, []int{1, 9102}, collection.LoadSeq(actuals, -1))
+		assert.Equal(t, []int{1, 9102}, collection.LoadSeqN(actuals, -1))
 	})
 }

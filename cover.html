@@ -57,7 +57,27 @@
 				
 				<option value="file0">go-cheatsheet/collection/functions.go (100.0%)</option>
 				
-				<option value="file1">go-cheatsheet/collection/interfaces.go (100.0%)</option>
+				<option value="file1">go-cheatsheet/collection/map_impl.go (91.2%)</option>
+				
+				<option value="file2">go-cheatsheet/collection/seq.go (92.9%)</option>
+				
+				<option value="file3">go-cheatsheet/context/set_get_value.go (84.6%)</option>
+				
+				<option value="file4">go-cheatsheet/gen/singleton.go (100.0%)</option>
+				
+				<option value="file5">go-cheatsheet/pool/async.go (93.1%)</option>
+				
+				<option value="file6">go-cheatsheet/rec/async.go (85.7%)</option>
+				
+				<option value="file7">go-cheatsheet/rec/stack_error.go (33.3%)</option>
+				
+				<option value="file8">go-cheatsheet/rec/sync.go (100.0%)</option>
+				
+				<option value="file9">go-cheatsheet/time/time.go (95.7%)</option>
+				
+				<option value="file10">go-cheatsheet/tpl/template.go (75.0%)</option>
+				
+				<option value="file11">go-cheatsheet/utils/pointer.go (100.0%)</option>
 				
 				</select>
 			</div>
@@ -75,13 +95,8 @@
 
 import (
         "errors"
-        "math"
+        "sort"
 )
-
-type pair[T any] struct {
-        idx int
-        t   T
-}
 
 var NoSliceElementErr = errors.New("no_slice_element_error")
 
@@ -114,58 +129,15 @@ func Count[T any](arr []T, predicate func(t T) bool) int <span class="cov8" titl
 }
 
 func DistinctSimple[T comparable](arr []T) []T <span class="cov8" title="1">{
-        set := map[T]bool{}
-
-        return Filter(arr, func(t T) bool </span><span class="cov8" title="1">{
-                flag, ok := set[t]
-                if flag &amp;&amp; ok </span><span class="cov8" title="1">{
-                        return false
-                }</span>
-
-                <span class="cov8" title="1">set[t] = true
-                return set[t]</span>
-        })
+        return Distinct(arr, func(t T) T </span><span class="cov8" title="1">{
+                return t
+        }</span>)
 }
 
 func Distinct[T any, C comparable](arr []T, getComparable func(t T) C) []T <span class="cov8" title="1">{
-        collection := map[C][]pair[T]{}
-        for i, t := range arr </span><span class="cov8" title="1">{
-                c := getComparable(t)
-                s := collection[c]
-                if s == nil </span><span class="cov8" title="1">{
-                        s = []pair[T]{}
-                }</span>
-
-                <span class="cov8" title="1">s = append(s, pair[T]{
-                        idx: i,
-                        t:   t,
-                })
-                collection[c] = s</span>
-        }
-
-        <span class="cov8" title="1">filteredArr := make([]T, 0, len(arr))
-        for </span><span class="cov8" title="1">{
-                if len(collection) &lt; 1 </span><span class="cov8" title="1">{
-                        break</span>
-                }
-
-                <span class="cov8" title="1">var minC C
-                var minT T
-                var minI = math.MaxInt
-                for c, pairs := range collection </span><span class="cov8" title="1">{
-                        p := pairs[0]
-                        if p.idx &lt;= minI </span><span class="cov8" title="1">{
-                                minC = c
-                                minT = p.t
-                                minI = p.idx
-                        }</span>
-                }
-
-                <span class="cov8" title="1">delete(collection, minC)
-                filteredArr = append(filteredArr, minT)</span>
-        }
-
-        <span class="cov8" title="1">return filteredArr</span>
+        return DistinctMap(arr, getComparable, func(t T) T </span><span class="cov8" title="1">{
+                return t
+        }</span>)
 }
 
 func First[T any](arr []T, predicate func(t T) bool) (T, error) <span class="cov8" title="1">{
@@ -179,6 +151,15 @@ func First[T any](arr []T, predicate func(t T) bool) (T, error) <span class="cov
         return tmp, NoSliceElementErr</span>
 }
 
+func FirstOrNil[S ~[]T, T any](arr S, predicate func(t T) bool) *T <span class="cov8" title="1">{
+        first, err := First(arr, predicate)
+        if errors.Is(err, NoSliceElementErr) </span><span class="cov8" title="1">{
+                return nil
+        }</span>
+
+        <span class="cov8" title="1">return &amp;first</span>
+}
+
 func Last[T any](arr []T, predicate func(t T) bool) (T, error) <span class="cov8" title="1">{
         for i := len(arr) - 1; i &gt;= 0; i-- </span><span class="cov8" title="1">{
                 if predicate(arr[i]) </span><span class="cov8" title="1">{
@@ -190,6 +171,15 @@ func Last[T any](arr []T, predicate func(t T) bool) (T, error) <span class="cov8
         return tmp, NoSliceElementErr</span>
 }
 
+func LastOrNil[S ~[]T, T any](arr S, predicate func(t T) bool) *T <span class="cov8" title="1">{
+        last, err := Last(arr, predicate)
+        if errors.Is(err, NoSliceElementErr) </span><span class="cov8" title="1">{
+                return nil
+        }</span>
+
+        <span class="cov8" title="1">return &amp;last</span>
+}
+
 func Map[A, B any](arr []A, convert func(a A) B) []B <span class="cov8" title="1">{
         convertedArr := make([]B, 0, len(arr))
         ForEach(arr, func(a A) </span><span class="cov8" title="1">{
@@ -199,20 +189,60 @@ func Map[A, B any](arr []A, convert func(a A) B) []B <span class="cov8" title="1
 
         <span class="cov8" title="1">return convertedArr</span>
 }
+
+func ListOf[T any](values ...T) []T <span class="cov8" title="1">{
+        return values
+}</span>
+
+func DistinctMap[T, V any, S ~[]T, C comparable](arr S, getComparable func(t T) C, converter func(t T) V) []V <span class="cov8" title="1">{
+        isDuplicate := map[C]bool{}
+        results := make([]V, 0, len(arr))
+        for _, a := range arr </span><span class="cov8" title="1">{
+                c := getComparable(a)
+                if !isDuplicate[c] </span><span class="cov8" title="1">{
+                        isDuplicate[c] = true
+                        results = append(results, converter(a))
+                }</span>
+        }
+
+        <span class="cov8" title="1">return results</span>
+}
+
+func ComplexSort[T any](arr []T, compares ...func(i, j int) bool) <span class="cov8" title="1">{
+        funcs := Filter(compares, func(compare func(i, j int) bool) bool </span><span class="cov8" title="1">{
+                return compare != nil
+        }</span>)
+        <span class="cov8" title="1">if len(funcs) == 0 </span><span class="cov8" title="1">{
+                return
+        }</span>
+
+        <span class="cov8" title="1">sort.Slice(arr, func(i, j int) bool </span><span class="cov8" title="1">{
+                return internalCompare(0, i, j, funcs...)
+        }</span>)
+}
+
+func internalCompare(seq, i, j int, compares ...func(i, j int) bool) bool <span class="cov8" title="1">{
+        if seq == len(compares)-1 </span><span class="cov8" title="1">{
+                return compares[seq](i, j)
+        }</span>
+
+        <span class="cov8" title="1">isBiggerJ := compares[seq](i, j)
+        isBiggerI := compares[seq](j, i)
+
+        if !isBiggerI &amp;&amp; !isBiggerJ </span><span class="cov8" title="1">{
+                return internalCompare(seq+1, i, j, compares...)
+        }</span>
+
+        <span class="cov8" title="1">return isBiggerJ</span>
+}
 </pre>
 		
 		<pre class="file" id="file1" style="display: none">package collection
 
-import "sort"
-
-type MultiValueMap[K comparable, V any] interface {
-        Put(key K, values ...V)
-        Get(key K) ([]V, bool)
-        Sort(key K, orderBy func(values []V, i, j int) bool)
-        SortAll(orderBy func(values []V, i, j int) bool)
-        Keys() []K
-        Len() int
-}
+import (
+        "iter"
+        "sort"
+)
 
 type multiValueMapImpl[K comparable, V any] map[K][]V
 
@@ -254,17 +284,539 @@ func (m multiValueMapImpl[K, V]) SortAll(orderBy func(values []V, i int, j int) 
         }</span>
 }
 
-func (m multiValueMapImpl[K, V]) Keys() []K <span class="cov8" title="1">{
-        keys := make([]K, 0, len(m))
-        for key := range m </span><span class="cov8" title="1">{
-                keys = append(keys, key)
-        }</span>
-
-        <span class="cov8" title="1">return keys</span>
+func (m multiValueMapImpl[K, V]) Keys() iter.Seq[K] <span class="cov8" title="1">{
+        return func(yield func(K) bool) </span><span class="cov8" title="1">{
+                for key := range m </span><span class="cov8" title="1">{
+                        if !yield(key) </span><span class="cov0" title="0">{
+                                return
+                        }</span>
+                }
+        }
 }
 
 func (m multiValueMapImpl[K, V]) Len() int <span class="cov8" title="1">{
         return len(m)
+}</span>
+
+func (m multiValueMapImpl[K, V]) IsEmpty() bool <span class="cov0" title="0">{
+        return len(m) == 0
+}</span>
+
+type setImpl[K comparable] map[K]*struct{}
+
+func (s setImpl[K]) Keys() iter.Seq[K] <span class="cov8" title="1">{
+        return func(yield func(K) bool) </span><span class="cov8" title="1">{
+                for key := range s </span><span class="cov8" title="1">{
+                        if !yield(key) </span><span class="cov0" title="0">{
+                                return
+                        }</span>
+                }
+        }
+}
+
+func (s setImpl[K]) Contains(key K) bool <span class="cov8" title="1">{
+        _, ok := s[key]
+        return ok
+}</span>
+
+func (s setImpl[K]) Len() int <span class="cov8" title="1">{
+        return len(s)
+}</span>
+
+func (s setImpl[K]) IsEmpty() bool <span class="cov8" title="1">{
+        return len(s) == 0
+}</span>
+
+func (s setImpl[K]) Put(key K) <span class="cov8" title="1">{
+        s[key] = &amp;struct{}{}
+}</span>
+
+func (s setImpl[K]) PutAll(keys ...K) <span class="cov8" title="1">{
+        for _, key := range keys </span><span class="cov8" title="1">{
+                s.Put(key)
+        }</span>
+}
+
+func NewSet[K comparable]() Set[K] <span class="cov8" title="1">{
+        return setImpl[K](map[K]*struct{}{})
+}</span>
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package collection
+
+import (
+        "iter"
+        "math"
+)
+
+func SeqOf[T any](values ...T) iter.Seq[T] <span class="cov8" title="1">{
+        return func(yield func(a T) bool) </span><span class="cov8" title="1">{
+                for _, a := range values </span><span class="cov8" title="1">{
+                        if !yield(a) </span><span class="cov8" title="1">{
+                                return
+                        }</span>
+                }
+        }
+}
+
+func LoadSeqN[T any](s iter.Seq[T], n int) []T <span class="cov8" title="1">{
+        var result []T
+        count := 0
+        if n &lt; 0 </span><span class="cov8" title="1">{
+                n = math.MaxInt
+        }</span>
+
+        <span class="cov8" title="1">for a := range s </span><span class="cov8" title="1">{
+                result = append(result, a)
+                count += 1
+                if count == n </span><span class="cov8" title="1">{
+                        break</span>
+                }
+        }
+
+        <span class="cov8" title="1">return result</span>
+}
+
+func LoadSeq[T any](s iter.Seq[T]) []T <span class="cov8" title="1">{
+        return LoadSeqN(s, -1)
+}</span>
+
+func MapSeq[A, B any](s iter.Seq[A], convert func(a A) B) iter.Seq[B] <span class="cov8" title="1">{
+        return func(yield func(B) bool) </span><span class="cov8" title="1">{
+                for a := range s </span><span class="cov8" title="1">{
+                        if !yield(convert(a)) </span><span class="cov8" title="1">{
+                                return
+                        }</span>
+                }
+        }
+}
+
+func FilterSeqN[T any](s iter.Seq[T], predicate func(t T) bool, n int) iter.Seq[T] <span class="cov8" title="1">{
+        return func(yield func(a T) bool) </span><span class="cov8" title="1">{
+                count := 0
+                if n &lt; 0 </span><span class="cov8" title="1">{
+                        n = math.MaxInt
+                }</span>
+
+                <span class="cov8" title="1">for a := range s </span><span class="cov8" title="1">{
+                        if predicate(a) </span><span class="cov8" title="1">{
+                                if !yield(a) </span><span class="cov0" title="0">{
+                                        return
+                                }</span>
+
+                                <span class="cov8" title="1">count += 1
+                                if count == n </span><span class="cov8" title="1">{
+                                        return
+                                }</span>
+                        }
+                }
+        }
+}
+
+func FilterSeq[T any](s iter.Seq[T], predicate func(t T) bool) iter.Seq[T] <span class="cov8" title="1">{
+        return FilterSeqN(s, predicate, -1)
+}</span>
+
+func CountSeq[T any](s iter.Seq[T]) int <span class="cov8" title="1">{
+        var count int
+        for range s </span><span class="cov8" title="1">{
+                count++
+        }</span>
+
+        <span class="cov8" title="1">return count</span>
+}
+
+func ConcatSeq[T any](s iter.Seq[T], values ...T) iter.Seq[T] <span class="cov8" title="1">{
+        return func(yield func(a T) bool) </span><span class="cov8" title="1">{
+                for a := range s </span><span class="cov8" title="1">{
+                        if !yield(a) </span><span class="cov0" title="0">{
+                                return
+                        }</span>
+                }
+                <span class="cov8" title="1">for _, a := range values </span><span class="cov8" title="1">{
+                        if !yield(a) </span><span class="cov0" title="0">{
+                                return
+                        }</span>
+                }
+        }
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package context
+
+import (
+        "context"
+        "errors"
+)
+
+type ContextKey[T any] string
+
+var ErrNoContextRecord = errors.New("no context record")
+
+func SetByCtx[T any](ctx context.Context, key ContextKey[T], value *T) context.Context <span class="cov8" title="1">{
+        if value == nil </span><span class="cov8" title="1">{
+                return ctx
+        }</span>
+
+        <span class="cov8" title="1">return context.WithValue(ctx, key, value)</span>
+}
+
+func GetByCtx[T any](ctx context.Context, key ContextKey[T]) (T, error) <span class="cov8" title="1">{
+        var dummyT T
+        obj := ctx.Value(key)
+        if obj == nil </span><span class="cov8" title="1">{
+                return dummyT, ErrNoContextRecord
+        }</span>
+
+        <span class="cov8" title="1">t, ok := obj.(*T)
+        if !ok </span><span class="cov0" title="0">{
+                return dummyT, ErrNoContextRecord
+        }</span>
+        <span class="cov8" title="1">if t == nil </span><span class="cov0" title="0">{
+                return dummyT, ErrNoContextRecord
+        }</span>
+
+        <span class="cov8" title="1">return *t, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package gen
+
+import (
+        "go-cheatsheet/utils"
+        "sync"
+)
+
+type SingletonSupplier[T any] interface {
+        Get() T
+}
+
+type singletonSupplier[T any] struct {
+        once     sync.Once
+        t        *T
+        supplier func() T
+}
+
+func (s *singletonSupplier[T]) Get() T <span class="cov8" title="1">{
+        s.once.Do(func() </span><span class="cov8" title="1">{
+                s.t = utils.Pointer(s.supplier())
+        }</span>)
+
+        <span class="cov8" title="1">return *s.t</span>
+}
+
+func NewSingletonSupplier[T any](supplier func() T) SingletonSupplier[T] <span class="cov8" title="1">{
+        return &amp;singletonSupplier[T]{
+                supplier: supplier,
+        }
+}</span>
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package pool
+
+import (
+        "context"
+        "go-cheatsheet/rec"
+        "sync"
+)
+
+type AsyncPool interface {
+        SubmitJob(job func(synchronizer Synchronizer))
+}
+
+type asyncPool struct {
+        ctx       context.Context
+        batchSize int
+        ch        chan func(synchronizer Synchronizer)
+        Synchronizer
+}
+
+type AsyncPoolOption struct {
+        BatchSize   *int                           // optional (default: 5)
+        RecoverFunc func(rec rec.StackError) error // optional
+}
+
+func (a *asyncPool) SubmitJob(job func(synchronizer Synchronizer)) <span class="cov8" title="1">{
+        a.ch &lt;- job
+}</span>
+
+func NewAsyncPool(ctx context.Context, setOptions ...func(option *AsyncPoolOption)) AsyncPool <span class="cov8" title="1">{
+        batchSize := 5
+        recoverFunc := rec.DefaultSyncRecoverFunc
+        obj := &amp;asyncPool{
+                ctx:          ctx,
+                Synchronizer: NewSynchronizer(),
+                ch:           make(chan func(synchronizer Synchronizer)),
+        }
+
+        if len(setOptions) &gt; 0 </span><span class="cov8" title="1">{
+                option := new(AsyncPoolOption)
+                for _, setOption := range setOptions </span><span class="cov8" title="1">{
+                        setOption(option)
+                }</span>
+
+                <span class="cov8" title="1">if option.BatchSize != nil </span><span class="cov8" title="1">{
+                        batchSize = *option.BatchSize
+                }</span>
+                <span class="cov8" title="1">if option.RecoverFunc != nil </span><span class="cov0" title="0">{
+                        recoverFunc = option.RecoverFunc
+                }</span>
+        }
+        <span class="cov8" title="1">obj.batchSize = batchSize
+
+        for i := 0; i &lt; obj.batchSize; i++ </span><span class="cov8" title="1">{
+                go func() </span><span class="cov8" title="1">{
+                        for </span><span class="cov8" title="1">{
+                                select </span>{
+                                case &lt;-obj.ctx.Done():<span class="cov8" title="1">
+                                        return</span>
+                                case runnable, ok := &lt;-obj.ch:<span class="cov8" title="1">
+                                        if !ok </span><span class="cov0" title="0">{
+                                                return
+                                        }</span>
+
+                                        <span class="cov8" title="1">_ = rec.SyncWithRecover(func() error </span><span class="cov8" title="1">{
+                                                runnable(obj.Synchronizer)
+
+                                                return nil
+                                        }</span>, recoverFunc)
+                                }
+                        }
+                }()
+        }
+
+        <span class="cov8" title="1">return obj</span>
+}
+
+type Synchronizer interface {
+        Sync(runnable func())
+}
+
+type synchronizer struct {
+        *sync.Mutex
+}
+
+func (s *synchronizer) Sync(runnable func()) <span class="cov8" title="1">{
+        s.Lock()
+        runnable()
+        s.Unlock()
+}</span>
+
+func NewSynchronizer() Synchronizer <span class="cov8" title="1">{
+        var mutex sync.Mutex
+
+        return &amp;synchronizer{
+                Mutex: &amp;mutex,
+        }
+}</span>
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package rec
+
+import (
+        "errors"
+        "fmt"
+        "runtime"
+)
+
+var NoFunctionalObjectErr = errors.New("no functional object")
+
+type AsyncRecoverFunc func(rec StackError)
+
+func AsyncWithRecover(runnable func() error, recoverFunc AsyncRecoverFunc) <span class="cov8" title="1">{
+        if runnable == nil </span><span class="cov0" title="0">{
+                panic(NoFunctionalObjectErr)</span>
+        }
+
+        <span class="cov8" title="1">go func() </span><span class="cov8" title="1">{
+                var err error
+
+                defer func() </span><span class="cov8" title="1">{
+                        if rec := recover(); rec != nil </span><span class="cov8" title="1">{
+                                buf := make([]byte, 1024)
+                                var isErr bool
+
+                                if err, isErr = rec.(error); !isErr </span><span class="cov8" title="1">{
+                                        err = fmt.Errorf("%v", rec)
+                                }</span>
+
+                                <span class="cov8" title="1">if recoverFunc == nil </span><span class="cov0" title="0">{
+                                        recoverFunc = DefaultAsyncRecoverFunc
+                                }</span>
+                                <span class="cov8" title="1">recoverFunc(&amp;stackErrorImpl{
+                                        error: err,
+                                        stack: buf[:runtime.Stack(buf, true)],
+                                })</span>
+                        }
+                }()
+
+                <span class="cov8" title="1">err = runnable()</span>
+        }()
+}
+
+func DefaultAsyncRecoverFunc(rec StackError) {<span class="cov0" title="0">}</span>
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package rec
+
+type WrappedError interface {
+        Unwrap() error
+        error
+}
+
+type StackError interface {
+        Stack() string
+        WrappedError
+}
+
+type stackErrorImpl struct {
+        error
+        stack []byte
+}
+
+func (e *stackErrorImpl) Stack() string <span class="cov0" title="0">{ return string(e.stack) }</span>
+
+func (e *stackErrorImpl) Error() string <span class="cov8" title="1">{ return e.error.Error() }</span>
+
+func (e *stackErrorImpl) Unwrap() error <span class="cov0" title="0">{ return e.error }</span>
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package rec
+
+import (
+        "fmt"
+        "runtime"
+)
+
+func SyncWithRecover(runnable func() error, recoverFunc func(rec StackError) error) (err error) <span class="cov8" title="1">{
+        defer func() </span><span class="cov8" title="1">{
+                if rec := recover(); rec != nil </span><span class="cov8" title="1">{
+                        buf := make([]byte, 1024)
+                        var isErr bool
+
+                        if err, isErr = rec.(error); !isErr </span><span class="cov8" title="1">{
+                                err = fmt.Errorf("%v", rec)
+                        }</span>
+
+                        <span class="cov8" title="1">err = recoverFunc(&amp;stackErrorImpl{
+                                error: err,
+                                stack: buf[:runtime.Stack(buf, true)],
+                        })</span>
+                }
+        }()
+
+        <span class="cov8" title="1">err = runnable()
+
+        return err</span>
+}
+
+func DefaultSyncRecoverFunc(rec StackError) error <span class="cov8" title="1">{
+        return rec
+}</span>
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">package time
+
+import "time"
+
+type Date struct {
+        Year  int        `json:"year"`
+        Month time.Month `json:"month"`
+        Day   int        `json:"day"`
+        Loc   *time.Location
+}
+
+func (d *Date) GetDate() time.Time <span class="cov8" title="1">{
+        loc := d.Loc
+        if loc == nil </span><span class="cov8" title="1">{
+                loc = time.Local
+        }</span>
+
+        <span class="cov8" title="1">return time.Date(d.Year, d.Month, d.Day, 0, 0, 0, 0, loc)</span>
+}
+
+func (d *Date) Format(format string) string <span class="cov0" title="0">{
+        return d.GetDate().Format(format)
+}</span>
+
+type Period struct {
+        From          Date `json:"from"`
+        To            Date `json:"to"`
+        CountFirstDay bool
+}
+
+func (p *Period) LargerThan(year, month, day int) bool <span class="cov8" title="1">{
+        if p.CountFirstDay </span><span class="cov8" title="1">{
+                day -= 1
+        }</span>
+
+        <span class="cov8" title="1">shiftDate := p.From.GetDate().AddDate(year, month, day)
+        return shiftDate.Before(p.To.GetDate())</span>
+}
+func (p *Period) LargerThanOrEqual(year, month, day int) bool <span class="cov8" title="1">{
+        if p.CountFirstDay </span><span class="cov8" title="1">{
+                day -= 1
+        }</span>
+
+        <span class="cov8" title="1">shiftDate := p.From.GetDate().AddDate(year, month, day)
+        to := p.To.GetDate()
+        return shiftDate.Before(to) || shiftDate.Equal(to)</span>
+}
+func (p *Period) SmallerThan(year, month, day int) bool <span class="cov8" title="1">{
+        if p.CountFirstDay </span><span class="cov8" title="1">{
+                day -= 1
+        }</span>
+
+        <span class="cov8" title="1">shiftDate := p.From.GetDate().AddDate(year, month, day)
+        return shiftDate.After(p.To.GetDate())</span>
+}
+func (p *Period) SmallerThanOrEqual(year, month, day int) bool <span class="cov8" title="1">{
+        if p.CountFirstDay </span><span class="cov8" title="1">{
+                day -= 1
+        }</span>
+
+        <span class="cov8" title="1">to := p.To.GetDate()
+        shiftDate := p.From.GetDate().AddDate(year, month, day)
+        return shiftDate.After(to) || shiftDate.Equal(to)</span>
+}
+</pre>
+		
+		<pre class="file" id="file10" style="display: none">package tpl
+
+import (
+        "bytes"
+        "errors"
+        "go-cheatsheet/utils"
+        "html/template"
+)
+
+var (
+        LoadTemplateErr  = errors.New("load_template_error")
+        ParseTemplateErr = errors.New("parse_template_error")
+)
+
+type TextTemplate[T any] string
+
+func (s *TextTemplate[T]) Parse(t T) (*string, error) <span class="cov8" title="1">{
+        tpl, err := template.New("TextTemplate").Parse(string(*s))
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, LoadTemplateErr
+        }</span>
+
+        <span class="cov8" title="1">var buf bytes.Buffer
+        err = tpl.Execute(&amp;buf, t)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, ParseTemplateErr
+        }</span>
+
+        <span class="cov8" title="1">return utils.Pointer(buf.String()), nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file11" style="display: none">package utils
+
+func Pointer[T any](t T) *T <span class="cov8" title="1">{
+        return &amp;t
 }</span>
 </pre>
 		
