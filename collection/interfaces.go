@@ -1,6 +1,8 @@
 package collection
 
-import "iter"
+import (
+	"iter"
+)
 
 type CheckableCollection interface {
 	Len() int
@@ -11,6 +13,7 @@ type ImmutableMultiValueMap[K comparable, V any] interface {
 	CheckableCollection
 	Get(key K) ([]V, bool)
 	Keys() iter.Seq[K]
+	Entries() iter.Seq2[K, []V]
 }
 
 type MultiValueMap[K comparable, V any] interface {

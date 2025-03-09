@@ -56,6 +56,16 @@ func (m multiValueMapImpl[K, V]) IsEmpty() bool {
 	return len(m) == 0
 }
 
+func (m multiValueMapImpl[K, V]) Entries() iter.Seq2[K, []V] {
+	return func(yield func(K, []V) bool) {
+		for key, values := range m {
+			if !yield(key, values) {
+				return
+			}
+		}
+	}
+}
+
 type setImpl[K comparable] map[K]*struct{}
 
 func (s setImpl[K]) Keys() iter.Seq[K] {

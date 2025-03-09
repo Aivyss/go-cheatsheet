@@ -3,6 +3,7 @@ package collection
 import (
 	"github.com/stretchr/testify/assert"
 	"go-cheatsheet/collection"
+	"go-cheatsheet/types"
 	"slices"
 	"sort"
 	"testing"
@@ -96,6 +97,27 @@ func TestMultiValueMap(t *testing.T) {
 		keys := collection.LoadSeq(m.Keys())
 		slices.Sort(keys)
 		assert.Equal(t, []int{1, 2}, keys)
+	})
+	t.Run("Entires", func(t *testing.T) {
+		// given
+		m := collection.NewMultiValueMap[int, string]()
+		inputValues := []string{"b", "a", "c"}
+
+		// when
+		for _, value := range inputValues {
+			m.Put(1, value)
+			m.Put(2, value)
+		}
+
+		// then
+		s := collection.LoadSeq2(m.Entries())
+		sort.Slice(s, func(i, j int) bool {
+			return s[i].First() < s[j].First()
+		})
+		assert.Equal(t, []types.Pair[int, []string]{
+			types.PairOf(1, inputValues),
+			types.PairOf(2, inputValues),
+		}, s)
 	})
 }
 

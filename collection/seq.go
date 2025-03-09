@@ -1,6 +1,7 @@
 package collection
 
 import (
+	"go-cheatsheet/types"
 	"iter"
 	"math"
 )
@@ -31,6 +32,28 @@ func LoadSeqN[T any](s iter.Seq[T], n int) []T {
 	}
 
 	return result
+}
+
+func LoadSeq2N[K, V any](s iter.Seq2[K, V], n int) []types.Pair[K, V] {
+	var result []types.Pair[K, V]
+	count := 0
+	if n < 0 {
+		n = math.MaxInt
+	}
+
+	for k, v := range s {
+		result = append(result, types.PairOf(k, v))
+		count += 1
+		if count == n {
+			break
+		}
+	}
+
+	return result
+}
+
+func LoadSeq2[K, V any](s iter.Seq2[K, V]) []types.Pair[K, V] {
+	return LoadSeq2N(s, -1)
 }
 
 func LoadSeq[T any](s iter.Seq[T]) []T {
