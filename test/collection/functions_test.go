@@ -88,7 +88,6 @@ func TestDistinct(t *testing.T) {
 	actualResult := collection.Distinct(arr, func(t nonComparable) int {
 		return t.num
 	})
-	t.Log("actualResult=", actualResult)
 
 	assert.Equal(t, 3, len(actualResult))
 	for i, actual := range actualResult {
