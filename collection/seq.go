@@ -60,6 +60,17 @@ func LoadSeq[T any](s iter.Seq[T]) []T {
 	return LoadSeqN(s, -1)
 }
 
+func ForEachSeq[T any](s iter.Seq[T], consumer func(t T)) iter.Seq[T] {
+	return func(yield func(a T) bool) {
+		for a := range s {
+			if !yield(a) {
+				return
+			}
+			consumer(a)
+		}
+	}
+}
+
 func MapSeq[A, B any](s iter.Seq[A], convert func(a A) B) iter.Seq[B] {
 	return func(yield func(B) bool) {
 		for a := range s {
@@ -78,10 +89,10 @@ func DistinctSeq[K comparable](s iter.Seq[K]) iter.Seq[K] {
 				continue
 			}
 
-			set.Put(k)
 			if !yield(k) {
 				return
 			}
+			set.Put(k)
 		}
 	}
 }

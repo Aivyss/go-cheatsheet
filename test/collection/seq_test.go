@@ -254,3 +254,28 @@ func TestDistinctSeq(t *testing.T) {
 		assert.Equal(t, []int{1, 2, 3, 4, 5, 6, 7}, distincts)
 	})
 }
+
+func TestForEachSeq(t *testing.T) {
+	t.Run("basic", func(t *testing.T) {
+		// given
+		seq := collection.SeqOf(1, 2, 3, 4, 5, 6)
+		expectedResults := []int{1, 2, 3}
+
+		// when
+		var consumerInputs []int
+		var forInputs []int
+		for v := range collection.ForEachSeq(seq, func(t int) {
+			consumerInputs = append(consumerInputs, t)
+		}) {
+			if v == 4 {
+				break
+			}
+
+			forInputs = append(forInputs, v)
+		}
+
+		// then
+		assert.Equal(t, expectedResults, consumerInputs)
+		assert.Equal(t, expectedResults, forInputs)
+	})
+}

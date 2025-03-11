@@ -44,8 +44,7 @@ func TestDistinctMap(t *testing.T) {
 
 func TestDistinct(t *testing.T) {
 	type nonComparable struct {
-		num   int
-		dummy func()
+		num int
 	}
 
 	arr := []nonComparable{
@@ -123,8 +122,7 @@ func TestDistinctSimple(t *testing.T) {
 func TestFilter(t *testing.T) {
 	// given
 	type nonComparable struct {
-		num   int
-		dummy func()
+		num int
 	}
 
 	arr := []nonComparable{
@@ -177,8 +175,7 @@ func TestFilter(t *testing.T) {
 func TestCount(t *testing.T) {
 	// given
 	type nonComparable struct {
-		num   int
-		dummy func()
+		num int
 	}
 
 	arr := []nonComparable{
