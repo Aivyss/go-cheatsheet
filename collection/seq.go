@@ -70,6 +70,22 @@ func MapSeq[A, B any](s iter.Seq[A], convert func(a A) B) iter.Seq[B] {
 	}
 }
 
+func DistinctSeq[K comparable](s iter.Seq[K]) iter.Seq[K] {
+	set := NewSet[K]()
+	return func(yield func(a K) bool) {
+		for k := range s {
+			if set.Contains(k) {
+				continue
+			}
+
+			set.Put(k)
+			if !yield(k) {
+				return
+			}
+		}
+	}
+}
+
 func FilterSeqN[T any](s iter.Seq[T], predicate func(t T) bool, n int) iter.Seq[T] {
 	return func(yield func(a T) bool) {
 		count := 0

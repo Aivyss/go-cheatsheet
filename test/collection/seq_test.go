@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"go-cheatsheet/collection"
+	"slices"
 	"testing"
 )
 
@@ -236,5 +237,20 @@ func TestFilterN(t *testing.T) {
 		// then
 		assert.Equal(t, 2, collection.CountSeq(actuals))
 		assert.Equal(t, []int{1, 9102}, collection.LoadSeqN(actuals, -1))
+	})
+}
+
+func TestDistinctSeq(t *testing.T) {
+	t.Run("basic", func(t *testing.T) {
+		// given
+		seq := collection.SeqOf(1, 1, 3, 2, 2, 3, 5, 6, 7, 4, 1, 2, 4, 3, 5)
+
+		// when
+		distinctSeq := collection.DistinctSeq(seq)
+
+		// then
+		distincts := collection.LoadSeq(distinctSeq)
+		slices.Sort(distincts)
+		assert.Equal(t, []int{1, 2, 3, 4, 5, 6, 7}, distincts)
 	})
 }
